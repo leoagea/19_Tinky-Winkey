@@ -28,7 +28,7 @@ $(DEPDIR):
 	@if not exist "$(DEPDIR)" mkdir "$(DEPDIR)"
 
 # Build target - will rebuild if any source or header file is newer than target
-$(TARGET): $(OBJDIR) $(DEPDIR) $(SRCDIR)\main.cpp $(INCDIR)\tinky.h
+$(TARGET): $(OBJDIR) $(DEPDIR) $(SRCDIR)\main.c $(INCDIR)\winkey.h
 	@echo Building $(TARGET)...
 	$(CXX) $(CXXFLAGS) /I$(INCDIR) /Fo$(OBJDIR)\ /Fd$(OBJDIR)\ $(SRCDIR)\*.cpp /link $(LDFLAGS) /OUT:$@ advapi32.lib user32.lib
 
