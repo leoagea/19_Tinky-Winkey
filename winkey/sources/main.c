@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    hideWindow();
+    // hideWindow();
 
     return 0;
 }
