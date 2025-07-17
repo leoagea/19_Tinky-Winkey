@@ -29,7 +29,7 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 */
 {
 
-    
+    printf("Key was pressed\n");
     return CallNextHookEx(g_Hook, code, wParam, lParam);
 }
 
@@ -39,7 +39,6 @@ bool    SetupKeyHook(void)
                                KeyboardProc,           // Callback function
                                GetModuleHandle(NULL),  // Used if callback function is in a .dll
                                0);                     // 0 Associate the callback to every thread
-    printf("%p\n", g_Hook);
     if (g_Hook == NULL)
     {
         return false;
