@@ -8,7 +8,7 @@ int main(void)
     errno_t err;
 
     err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");
-
+    printf("Test\n");
     if (err != 0)
         return 1;
 
