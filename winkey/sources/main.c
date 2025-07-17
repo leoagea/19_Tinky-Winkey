@@ -1,8 +1,8 @@
-#include <../includes/winkey.h>
+#include "winkey.h"
 
-int main()
+int main(void)
 {
-    printf("Helo World !\n");
+    printf("Hello World !\n");
 
     return 0;
 }
