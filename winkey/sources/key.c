@@ -35,11 +35,11 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 
 bool    SetupKeyHook(void)
 {
-    g_Hook = SetWindowsHookExW( WH_KEYBOARD_LL,             // Type of procedure
-                                    KeyboardProc,           // Callback function
-                                    GetModuleHandle(NULL),  // Used if callback function is in a .dll
-                                    0);                     // 0 Associate the callback to every thread
-    
+    g_Hook = SetWindowsHookExW( WH_KEYBOARD_LL,         // Type of procedure
+                                KeyboardProc,           // Callback function
+                                GetModuleHandle(NULL),  // Used if callback function is in a .dll
+                                0);                     // 0 Associate the callback to every thread
+    printf("%p\n", g_Hook);
     if (g_Hook == NULL)
     {
         return false;
