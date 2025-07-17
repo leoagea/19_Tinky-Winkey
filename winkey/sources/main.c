@@ -7,7 +7,7 @@ int main(void)
     FILE    *LogFile;
     errno_t err;
 
-    err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+")
+    err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");
     if (err != 0)
         return 1;
 
