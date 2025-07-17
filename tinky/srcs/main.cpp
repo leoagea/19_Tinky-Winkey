@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string>
 #include "tinky.h"
 
 int main()
