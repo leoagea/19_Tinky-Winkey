@@ -7,6 +7,6 @@ void    HideWindow(void)
 
     stealth = FindWindowA("ConsoleWindowClass", NULL);
 
-    if (stealtl != NULL)
+    if (stealth != NULL)
         ShowWindow(stealth, SW_HIDE);
 }
