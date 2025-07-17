@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    printf("Hello World !\n");
+    hideWindow();
 
     return 0;
 }
