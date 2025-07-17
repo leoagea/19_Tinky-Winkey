@@ -7,9 +7,13 @@ int main(void)
     FILE    *LogFile;
     errno_t err;
 
-    if (err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+") != 0)
+    err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+")
+    if (err != 0)
         return 1;
 
 
+
+    fclose(LogFile);
+    
     return 0;
 }
