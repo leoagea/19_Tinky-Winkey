@@ -24,8 +24,11 @@
 #include <winuser.h>
 #include <libloaderapi.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 
 extern HHOOK g_Hook;
+extern FILE *LogFile;
 
 /* Window */
 void    HideWindow(void);

