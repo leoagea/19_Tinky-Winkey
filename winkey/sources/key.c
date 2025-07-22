@@ -61,6 +61,34 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
             BYTE    keyboardState[256] = {0};
             GetKeyboardState(keyboardState);
 
+            if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
+            {
+                keyboardState[VK_SHIFT] = 0x80;
+                keyboardState[VK_LSHIFT] = 0x80;
+                keyboardState[VK_RSHIFT] = 0x80;
+            }
+            
+            if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
+            {
+                keyboardState[VK_CONTROL] = 0x80;
+                keyboardState[VK_LCONTROL] = 0x80;
+                keyboardState[VK_RCONTROL] = 0x80;
+            }
+            
+            if (GetAsyncKeyState(VK_MENU) & 0x8000)  // ALT key
+            {
+                keyboardState[VK_MENU] = 0x80;
+                keyboardState[VK_LMENU] = 0x80;
+                keyboardState[VK_RMENU] = 0x80;
+            }
+            
+            // Check for Caps Lock state
+            if (GetKeyState(VK_CAPITAL) & 0x0001)
+            {
+                keyboardState[VK_CAPITAL] = 0x01;
+            }
+
+
             int res = ToUnicodeEx(VirtualKeyCode,
                                   kb->scanCode,
                                   keyboardState,
@@ -78,11 +106,6 @@ LRESULT CALLBACK    KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
                     case VK_BACK:      specialKey = _strdup("BACK");    break;
                     case VK_SPACE:     specialKey = _strdup(" ");       break;
                     case VK_TAB:       specialKey = _strdup("\t");      break;
-                    case Vk_SHIFT:     specialKey = _strdup("SHIFT");   break;
-                    case Vk_ALT:       specialKey = _strdup("ALT");     break;
-                    case VK_CONTROL:   specialKey = _strdup("CTRL");    break;
-                    case VK_LCONTROL:  specialKey = _strdup("LCTRL");   break;
-                    case VK_RCONTROL:  specialKey = _strdup("RCTRL");   break;
                     case VK_LEFT:      specialKey = _strdup("LEFT");    break;
                     case VK_RIGHT:     specialKey = _strdup("RIGHT");   break;
                     case VK_UP:        specialKey = _strdup("UP");      break;
