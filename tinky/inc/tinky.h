@@ -29,6 +29,14 @@
 #define SERVICE_DISPLAY_NAME _T("tinky")  // Display name of the service
 
 /*#############################################################################
+# Global Variables
+#############################################################################*/
+
+extern SERVICE_STATUS g_ServiceStatus;
+extern SERVICE_STATUS_HANDLE g_ServiceStatusHandle;
+extern HANDLE g_ServiceStopEvent;
+
+/*#############################################################################
 # Service Management Methods / tinky.cpp
 #############################################################################*/
 
@@ -41,7 +49,7 @@ void Delete();
 # Service Implementation Methods / svc.cpp
 #############################################################################*/
 
-void MainService(DWORD argc, LPTSTR *argv);
+void ServiceMain(DWORD argc, LPTSTR *argv);
 
 /*#############################################################################
 # Utils Methods / Utils.cpp

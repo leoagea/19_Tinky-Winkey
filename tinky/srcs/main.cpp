@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 
 	if (args.empty()) {
 		SERVICE_TABLE_ENTRY serviceTable[] = {
-			{SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)MainService},
+			{SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
 			{NULL, NULL}
 		};
 
