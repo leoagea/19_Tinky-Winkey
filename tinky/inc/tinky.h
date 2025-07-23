@@ -42,6 +42,7 @@ extern SERVICE_STATUS g_ServiceStatus;
 extern SERVICE_STATUS_HANDLE g_ServiceStatusHandle;
 extern HANDLE g_ServiceStopEvent;
 extern PROCESS_INFORMATION g_ProcessInfo;
+extern HANDLE g_WorkerThread;
 
 /*#############################################################################
 # Service Management Methods / tinky.cpp
