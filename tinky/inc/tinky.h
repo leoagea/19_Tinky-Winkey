@@ -12,6 +12,9 @@
 #include <string_view> // For std::string_view and std::wstring_view
 #include <vector>    // For std::vector
 #include <sstream>   // For std::istringstream
+#include <iomanip>  // For std::put_time
+#include <chrono>   // For std::chrono
+#include <fstream>  // For std::ofstream
 
 // Windows API includes
 #define WIN32_LEAN_AND_MEAN
@@ -20,6 +23,7 @@
 #include <tchar.h>   // For TCHAR string functions
 #include <libloaderapi.h>
 #include <shellapi.h> // For CommandLineToArgvW>
+#include <tlhelp32.h> // For Process32First/Next
 
 /*#############################################################################
 # Defines
@@ -56,3 +60,5 @@ void ServiceMain(DWORD argc, LPTSTR *argv);
 #############################################################################*/
 
 LPCTSTR GetErrorMessage();
+DWORD GetProcessIdByName(const std::string& processName);
+void DebugLogToFile(const std::string& message);

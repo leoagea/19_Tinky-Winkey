@@ -8,6 +8,58 @@ HANDLE g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 # Service Implementation Methods
 #############################################################################*/
 
+static void WorkerThreadRoutine()
+{
+	DebugLogToFile("Worker thread started.");
+
+	DWORD pid = GetProcessIdByName("winlogon.exe");
+	if (pid == 0) {
+		DebugLogToFile("Failed to get process ID for winlogon.exe");
+		return;
+	}
+
+	DebugLogToFile("Winlogon.exe, PID: " + std::to_string(pid));
+
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+	if (hProcess == NULL) {
+		DebugLogToFile("Failed to open process for winlogon.exe");
+		return;
+	}
+
+	HANDLE hToken = NULL;
+	OpenProcessToken(hProcess, TOKEN_ALL_ACCESS, &hToken);
+	if (hToken == NULL) {
+		DebugLogToFile("Failed to open process token for winlogon.exe");
+		CloseHandle(hProcess);
+		return;
+	}
+
+	HANDLE hDuplicatedToken = NULL;
+	if (DuplicateTokenEx(hToken, TOKEN_ALL_ACCESS, NULL, SecurityImpersonation, TokenPrimary, &hDuplicatedToken) == 0) {
+		std::stringstream errorMessage;
+		errorMessage << "Failed to duplicate token for winlogon.exe: " << GetErrorMessage();
+		DebugLogToFile(errorMessage.str());
+		CloseHandle(hToken);
+		CloseHandle(hProcess);
+		return;
+	}
+
+	if (!ImpersonateLoggedOnUser(hDuplicatedToken)) {
+		std::stringstream errorMessage;
+		errorMessage << "Failed to impersonate logged on user: " << GetErrorMessage();
+		DebugLogToFile(errorMessage.str());
+		CloseHandle(hDuplicatedToken);
+		CloseHandle(hToken);
+		CloseHandle(hProcess);
+		return;
+	}
+
+	
+	CloseHandle(hDuplicatedToken);
+	CloseHandle(hToken);
+	CloseHandle(hProcess);
+}
+
 static void ServiceControlHandler(DWORD control)
 {
 	switch (control) {
@@ -78,7 +130,8 @@ void ServiceMain(DWORD argc, LPTSTR *argv)
 	}
 	// Service is now running, perform service tasks here
 	// For demonstration, we will just wait for the stop event
-	std::cout << "Service has started" << std::endl;
+	DebugLogToFile("Service has started.");
+	WorkerThreadRoutine(); // Start worker thread or perform service tasks
 
 	WaitForSingleObject(g_ServiceStopEvent, INFINITE);
 
@@ -93,6 +146,5 @@ void ServiceMain(DWORD argc, LPTSTR *argv)
 		std::cout << "SetServiceStatus failed: " << GetErrorMessage() << std::endl;
 	}
 
-	std::cout << "Service has stopped" << std::endl;
+	DebugLogToFile("Service has stopped");
 }
-

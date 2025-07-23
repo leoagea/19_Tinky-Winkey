@@ -1,5 +1,5 @@
 CXX = cl
-CXXFLAGS = /nologo /Wall /WX /EHs /MD /wd4710 /wd4711 /std:c++17
+CXXFLAGS = /nologo /Wall /WX /EHs /MD /wd4710 /wd4711 /wd4820 /std:c++17
 LDFLAGS = 
 !IFNDEF BUILD
 BUILD = release

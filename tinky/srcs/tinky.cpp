@@ -14,7 +14,6 @@ void Install()
 		std::cout << "GetModuleFileName failed: " << GetErrorMessage() << std::endl;
 		exit(1);
 	}
-	// std::cout << "Executable Path: " << executablePath << std::endl;
 
 	hSCManager = OpenSCManager(
 		NULL,                    // local computer
