@@ -3,6 +3,7 @@
 SERVICE_STATUS g_ServiceStatus = {0};
 SERVICE_STATUS_HANDLE g_ServiceStatusHandle = NULL;
 HANDLE g_ServiceStopEvent = INVALID_HANDLE_VALUE;
+PROCESS_INFORMATION g_ProcessInfo = {0};
 
 /*#############################################################################
 # Service Implementation Methods
@@ -54,7 +55,61 @@ static void WorkerThreadRoutine()
 		return;
 	}
 
-	
+	TCHAR currentPath[MAX_PATH];
+	TCHAR commandLine[MAX_PATH];
+	TCHAR currentDirectory[MAX_PATH];
+
+	if (!GetModuleFileName(NULL, currentPath, MAX_PATH)) {
+		DebugLogToFile("GetModuleFileName failed: " + std::string(GetErrorMessage()));
+		CloseHandle(hDuplicatedToken);
+		CloseHandle(hToken);
+		CloseHandle(hProcess);
+		return;
+	}
+
+	DebugLogToFile("Current path: " + std::string(currentPath));
+
+	_tcscpy_s(currentDirectory, MAX_PATH, currentPath);
+	PathRemoveFileSpec(currentDirectory);
+	DebugLogToFile("Service directory: " + std::string(currentDirectory));
+
+	PathRemoveFileSpec(currentDirectory);
+	DebugLogToFile("Parent directory: " + std::string(currentDirectory));
+
+	// Build test.exe path: C:\path\to\test.exe
+	_tcscpy_s(commandLine, MAX_PATH, currentDirectory);
+	PathAppend(commandLine, _T("test.exe"));
+	// PathAppend(commandLine, _T("winkey\\winkey.exe"));
+	DebugLogToFile("Test executable path: " + std::string(commandLine));
+
+	STARTUPINFO si = {0};
+	si.cb = sizeof(si);
+	si.lpDesktop = _T("winsta0\\default");
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
+
+	if (!CreateProcessAsUser(hDuplicatedToken, 
+		NULL, 
+		commandLine, 
+		NULL, 
+		NULL, 
+		FALSE, 
+		CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT, 
+		NULL, 
+		currentDirectory, 
+		&si, 
+		&g_ProcessInfo)) {
+		
+		std::stringstream errorMessage;
+		errorMessage << "Failed to create process as user: " << GetErrorMessage();
+		DebugLogToFile(errorMessage.str());
+	} else {
+		DebugLogToFile("Process created successfully");
+	}
+
+	// Revert impersonation
+	RevertToSelf();
+
 	CloseHandle(hDuplicatedToken);
 	CloseHandle(hToken);
 	CloseHandle(hProcess);

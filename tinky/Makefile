@@ -1,5 +1,5 @@
 CXX = cl
-CXXFLAGS = /nologo /Wall /WX /EHs /MD /wd4710 /wd4711 /wd4820 /std:c++17
+CXXFLAGS = /nologo /Wall /WX /EHs /MD /wd4710 /wd4711 /wd4820 /wd5045 /std:c++17
 LDFLAGS = 
 !IFNDEF BUILD
 BUILD = release
@@ -30,7 +30,7 @@ $(DEPDIR):
 # Build target - will rebuild if any source or header file is newer than target
 $(TARGET): $(OBJDIR) $(DEPDIR) $(SRCDIR)\main.cpp $(INCDIR)\tinky.h
 	@echo Building $(TARGET)...
-	$(CXX) $(CXXFLAGS) /I$(INCDIR) /Fo$(OBJDIR)\ /Fd$(OBJDIR)\ $(SRCDIR)\*.cpp /link $(LDFLAGS) /OUT:$@ advapi32.lib user32.lib shell32.lib
+	$(CXX) $(CXXFLAGS) /I$(INCDIR) /Fo$(OBJDIR)\ /Fd$(OBJDIR)\ $(SRCDIR)\*.cpp /link $(LDFLAGS) /OUT:$@ advapi32.lib user32.lib shell32.lib shlwapi.lib
 
 clean:
 	-del /Q *.obj *.pdb *.ilk *.timestamp 2>nul

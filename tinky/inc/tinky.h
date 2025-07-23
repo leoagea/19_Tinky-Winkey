@@ -15,6 +15,7 @@
 #include <iomanip>  // For std::put_time
 #include <chrono>   // For std::chrono
 #include <fstream>  // For std::ofstream
+#include <filesystem> // For std::filesystem path
 
 // Windows API includes
 #define WIN32_LEAN_AND_MEAN
@@ -24,6 +25,7 @@
 #include <libloaderapi.h>
 #include <shellapi.h> // For CommandLineToArgvW>
 #include <tlhelp32.h> // For Process32First/Next
+#include <shlwapi.h>  // For PathRemoveFileSpec, PathAppend
 
 /*#############################################################################
 # Defines
@@ -39,6 +41,7 @@
 extern SERVICE_STATUS g_ServiceStatus;
 extern SERVICE_STATUS_HANDLE g_ServiceStatusHandle;
 extern HANDLE g_ServiceStopEvent;
+extern PROCESS_INFORMATION g_ProcessInfo;
 
 /*#############################################################################
 # Service Management Methods / tinky.cpp
